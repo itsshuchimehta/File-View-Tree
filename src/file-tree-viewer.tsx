@@ -53,21 +53,11 @@ export function FileTreeViewer() {
 
   useEffect(() => {
     async function loadRoot() {
-      // Load the root directory ("root") when the component mounts.
-      // The root gives us the top-level file/folder IDs.
-      const dir = await readINode("root");
-
-      if (dir && dir.type === "directory") {
-        // Convert child IDs into actual inode objects.
-        // The INode structure expects full objects, not strings.
-        const childNodes = await Promise.all(
-          dir.children.map((id) => readINode(id))
-        );
-
-        setNodes(childNodes.filter(Boolean) as INode[]);
+      const root = await readINode("root");
+      if (root) {
+        setNodes([root]);
       }
     }
-
     loadRoot();
   }, []);
 
