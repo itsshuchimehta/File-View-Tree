@@ -1,19 +1,16 @@
 // API CALL TO USE
-import { ChevronDown, ChevronRight, FileText, Folder } from "lucide-react";
+import { ChevronRight, File, Folder, FolderOpen } from "lucide-react";
 import { useEffect, useState } from "react";
 import { readINode } from "./api/read-inode";
 import { useToggleSet } from "./hooks/useToggleSet";
 import { Directory, INode } from "./types/file-types";
 
 // Helper to check if a node is a directory.
-// Makes TS happy because only directories have "children".
 function isDirectory(node: INode): node is Directory {
   return node.type === "directory";
 }
 
-// This component loads the actual child nodes,
-// because the directory only stores child IDs (strings).
-// So we fetch each child inode before rendering the tree.
+// This component loads the actual child nodes because the directory only stores child IDs (strings).
 function DirectoryChildren({
   ids,
   renderNode,
@@ -26,7 +23,6 @@ function DirectoryChildren({
   useEffect(() => {
     async function loadChildren() {
       // Load all the children based on their IDs.
-      // readINode returns the real inode object for each ID.
       const resolved = await Promise.all(ids.map((id) => readINode(id)));
       setChildren(resolved.filter(Boolean) as INode[]);
     }
@@ -35,7 +31,7 @@ function DirectoryChildren({
   }, [ids]);
 
   return (
-    <div className="ml-3 border-l border-gray-300 pl-2">
+    <div className="ml-2.5 border-l border-gray-300">
       {children.map((child) => (
         <div key={child.id}>{renderNode(child)}</div>
       ))}
@@ -53,7 +49,7 @@ export function FileTreeViewer() {
 
   useEffect(() => {
     async function loadRoot() {
-      const root = await readINode("root");
+      const root = await readINode();
       if (root) {
         setNodes([root]);
       }
@@ -74,17 +70,23 @@ export function FileTreeViewer() {
           aria-expanded={isFolder ? isOpen : undefined}
         >
           <div className="flex items-center gap-[2px]">
-            {isFolder ? (
-              isOpen ? (
-                <ChevronDown size={12} />
-              ) : (
-                <ChevronRight size={12} />
-              )
-            ) : (
-              <span className="w-3" />
+            {isFolder && (
+              <ChevronRight
+                className={`size-4 text-gray-500 transition-transform ${
+                  isOpen ? "rotate-90" : ""
+                }`}
+              />
             )}
 
-            {isFolder ? <Folder size={12} /> : <FileText size={12} />}
+            {isFolder ? (
+              isOpen ? (
+                <FolderOpen className="ml-2 size-5  text-white fill-sky-500" />
+              ) : (
+                <Folder className="ml-2 size-4 text-sky-500 fill-current" />
+              )
+            ) : (
+              <File className="ml-6 size-4 text-gray-500" />
+            )}
           </div>
 
           <span className="text-sm font-light">{node.name}</span>
@@ -100,8 +102,8 @@ export function FileTreeViewer() {
   return (
     <div className="bg-white rounded p-6 space-y-6">
       <div className="grid">
-        <div className="flex justify-center mt-20">
-          <div className="w-[260px]">
+        <div className="flex justify-center">
+          <div className="w-[260px] min-h-[300px]">
             <h1 className="text-xl font-medium mb-4 text-center">
               File Tree Viewer
             </h1>
